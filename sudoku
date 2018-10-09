@@ -1,0 +1,222 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <time.h>
+#include <stdlib.h>
+#define T 9
+#define f(v, n) for(v=0;v<n;v++)
+
+using namespace std;
+
+typedef struct {
+    int num[T][T];
+    bool ocu[T][T];
+} sudoku;
+
+void mostrar(sudoku &tablero);
+void inim(sudoku &tablero);
+void generar_lista( sudoku &tablero, int x[], int y[]);
+bool es_posible_sub3( sudoku tablero, int fila, int columna, int numero);
+bool es_posible_columna(sudoku tablero, int columna, int numero);
+bool es_posible_fila(sudoku tablero, int fila, int numero);
+bool es_posible_asignar(sudoku tablero, int fila, int columna, int numero);
+bool llena(sudoku tablero);
+int valnum(int val);
+int valcor(int cor);
+int valcant(int cant);
+
+int main(){
+    (time(NULL));
+    sudoku su;
+    int cant, fi, co, valor, i, *x, *y;
+
+    inim(su);
+    mostrar(su);
+
+    cout<<"ingrese la cantidad de elementos con los que quiero incializar el juego \n";
+    cin>>cant;
+
+    x= new int [cant];
+    y= new int [cant];
+
+    f(i, cant){
+        cout<<"inicializando casillas ocupadas \n";
+        cout<<"incializando casilla"<< i+1<<endl;
+
+        do{
+            fi = rand()%8;
+            fi = valcor(fi);
+
+            co = rand()%8;
+            co = valcor(co);
+
+            if(!su.ocu[fi][co]){
+                cout<<"YA ESTA CASILLA ESTA OCUPADA \n";
+            }
+            else {
+                valor=rand()%8 + 1;
+                valor=valnum(valor);
+            }
+        }while(!es_posible_asignar(su, fi, co, valor));
+        su.num[fi][co]=valor;
+        su.ocu[fi][co]=false;
+    }
+    generar_lista(su, x, y);
+
+    cout<<"lista de casillas ocupadas \n";
+
+    f(i, cant){
+        cout<<" fila "<<x[i]<<" columna "<<y[i]<<" esta ocupada \n";
+    }
+    delete[]x;
+    delete[]y;
+
+    cout<<"INICIO DEL JUEGO \n";
+    do{
+        cout<<"ingrese la fila \n";
+        cin>>fi;
+        fi=valcor(fi);
+
+        cout<<"ingrese columna \n";
+        cin>>co;
+        co=valcor(co);
+
+        if(su.ocu[fi][co]){
+            cout<<"ingrese el numero \n";
+            cin>>valor;
+            valor=valnum(valor);
+            if(es_posible_asignar(su, fi, co, valor)){
+                su.num[fi][co]=valor;
+            }
+            else{
+                cout<<"el valor no se puede ingresar porque esta reprtido \n";
+            }
+        }
+        else{
+            cout<<"ESTA CASILLA ESTA INCIALIZADA COMO OCUPADA \n";
+        }
+        mostrar(su);
+    }while(!llena(su));
+    cout<<"FELICITACIONES GANASTE \n";
+}
+void generar_lista(sudoku & tablero, int x[], int y[]){
+    int i, j, cont=0;
+    f(i, T){
+        f(j, T){
+            if (tablero.num[i][j]!=0){
+                x[cont]=i;
+                y[cont]=j;
+                cont++;
+            }
+        }
+    }
+
+}
+void inim( sudoku & tablero){
+    int i, j;
+    f(i, T){
+        f(j, T){
+            tablero.num[i][j] = 0;
+            tablero.ocu[i][j] = true;
+        }
+    }
+}
+void mostrar(sudoku & tablero){
+    int i, j;
+    cout<<"|          0  1  2    3  4  5    6  7  8 "<<endl;
+    f(i, 9){
+        if( i==0 || i==3 || i==6 ){
+            cout<<"           _____________________________"<<endl;
+        }
+        cout<<i<<"      |";
+        f(j, 9){
+            if(j==0 || j==3 || j==6){
+                cout<<"| ";
+            }
+            if (tablero.ocu[i][j]){
+                cout<<"["<<tablero.num[i][j]<<"]";
+            }
+            else{
+                if (tablero.num[i][j]!=0){
+                    cout<<" "<<tablero.num[i][j]<<" ";
+                }
+                else{
+                    cout<<" . ";
+                }
+            }
+            if (j==8) cout<<"||";
+        }
+        cout<<endl<<endl;
+    }
+    cout<<"       ||  _____________________________ ||"<<endl;
+}
+int valnum(int val){
+    while(!(val>=1 && val<=9)){
+        cout<<"ingrese el numero de nuevo"<<endl;
+        cin>>val;
+    }
+    return val;
+}
+int valcor(int cor){
+    while(!(cor>=0 && cor<=8)){
+        cout<<"ingrese el numero de nuevo"<<endl;
+        cin>>cor;
+    }
+    return cor;
+}
+int valcant(int cant){
+    while(!(cant>=1 && cant<=81)){
+        cout<<"ingrese el numero de nuevo"<<endl;
+        cin>>cant;
+    }
+    return cant;
+}
+bool es_posible_fila(sudoku tablero, int fila, int numero){
+    int i;
+    f(i, T){
+        if ((numero == tablero.num[fila][i]) ){
+            return false;
+        }
+    }
+    return true;
+}
+bool es_posible_columna(sudoku tablero, int columna, int numero){
+    int i;
+    f(i, T){
+        if ((numero == tablero.num[i][columna]) ){
+            return false;
+        }
+    }
+    return true;
+}
+bool es_posible_sub3( sudoku tablero, int fila, int columna, int numero){
+    int y = (fila/3)*3;
+    int x = (columna/3)*3;
+    for(int i=0; i<3; i++){
+        for(int j=0; j<3; j++){
+            if ((numero == tablero.num[y + i][x + j])){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+bool es_posible_asignar( sudoku tablero, int fila, int columna, int numero){
+    if(tablero.ocu[fila][columna]){
+        if((es_posible_fila(tablero, fila, numero)&& es_posible_columna(tablero, fila, columna)&& es_posible_sub3(tablero, fila, columna, numero))){
+            return true;
+        }
+    }
+}
+bool llena (sudoku tablero){
+    for (int i=0; i<9; i++){
+        for (int j=0; j<9; j++){
+            if(tablero.num[i][j]==0){
+                return false;
+            }
+        }
+    }
+    return true;
+}
